@@ -7,5 +7,6 @@
     <string name="GET">Get</string>
     <string name="QUESTIONNAIRE_ID">Questionnaire ID</string>
     <string name="DEFAULT_BASE_URL">http://192.168.2.200:8080/questionnaire</string>
+    <string name="VERIFY">Verify</string>
 
 </resources>

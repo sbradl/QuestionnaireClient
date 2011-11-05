@@ -18,20 +18,39 @@ public final class QuestionnaireFactory {
     public static Questionnaire createQuestionnaireFromXml(final String xml)
             throws IOException, XPathExpressionException {
 
-        InputSource source = new InputSource(new StringReader(xml));
-
-        Questionnaire questionnaire = new Questionnaire();
-
-        XPath xpath = XPathFactory.newInstance().newXPath();
-
+        final InputSource source = new InputSource(new StringReader(xml));
+        final XPath xpath = XPathFactory.newInstance().newXPath();
+        
+        final Questionnaire questionnaire = new Questionnaire();
+        
         NodeList questionNodes = (NodeList) xpath.evaluate("//question", source,
                 XPathConstants.NODESET);
 
         for (int i = 0; i < questionNodes.getLength(); ++i) {
             Element questionNode = (Element) questionNodes.item(i);
-            String type = questionNode.getAttribute("type").toUpperCase();
             
-            questionnaire.addQuestion(new Question(Enum.valueOf(QuestionType.class, type)));
+            String typeName = questionNode.getAttribute("type").toUpperCase();
+            QuestionType type = Enum.valueOf(QuestionType.class, typeName);
+            
+            String id = questionNode.getAttribute("id");
+            String text = questionNode.getElementsByTagName("text").item(0).getTextContent();
+            
+            Question question = new Question(type, id, text);
+            
+            if(type == QuestionType.CHOICE || type == QuestionType.MULTICHOICE) {
+                NodeList choiceNodes = questionNode.getElementsByTagName("choice");
+                
+                for(int j = 0; j < choiceNodes.getLength(); ++j) {
+                    Element choiceNode = (Element) choiceNodes.item(j);
+                    
+                    final String choiceId = choiceNode.getAttribute("id");
+                    final String value = choiceNode.getTextContent();
+                    final Choice choice = new Choice(choiceId, value);
+                    question.addChoice(choice);
+                }
+            }
+            
+            questionnaire.addQuestion(question);
         }
 
         return questionnaire;
