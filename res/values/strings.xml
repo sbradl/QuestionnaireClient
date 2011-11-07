@@ -8,5 +8,10 @@
     <string name="QUESTIONNAIRE_ID">Questionnaire ID</string>
     <string name="DEFAULT_BASE_URL">http://192.168.2.200:8080/questionnaire</string>
     <string name="VERIFY">Verify</string>
+    <string name="SETTINGS">Settings</string>
+    <string name="SAVE">Save</string>
+    <string name="SETTINGS_SAVED">Settings saved</string>
+    <string name="ERROR_SAVING_SETTINGS">Error while saving settings</string>
+    <string name="ERROR_FETCHING_OVERVIEW">Could not fetch questionnaire overview</string>
 
 </resources>

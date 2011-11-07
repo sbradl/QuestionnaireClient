@@ -4,28 +4,15 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <EditText
+    <TextView
         android:id="@+id/textViewBaseUrl"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <ListView
+        android:id="@+id/questionnaireList"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/BASE_URL"
-        android:text="@string/DEFAULT_BASE_URL" >
-
-        <requestFocus />
-    </EditText>
-
-    <Button
-        android:id="@+id/buttonGetQuestionnaire"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/GET" />
-
-    <LinearLayout
-        android:id="@+id/linearLayout1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical" >
-
-    </LinearLayout>
+        android:layout_height="wrap_content" >
+    </ListView>
 
 </LinearLayout>

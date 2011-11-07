@@ -19,6 +19,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".questionnaire.client.activity.GetQuestionnaireActivity"></activity>
+        <activity android:name=".questionnaire.client.activity.SettingsActivity"></activity>
     </application>
     <uses-permission android:name="android.permission.INTERNET"></uses-permission>
 
