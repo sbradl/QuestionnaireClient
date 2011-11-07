@@ -34,7 +34,7 @@ public class QuestionnaireService {
         
         for(int i = 0; i < questionnaireNodes.getLength(); ++i) {
             Element questionnaireNode = (Element) questionnaireNodes.item(i);
-            questionnaires.put(questionnaireNode.getAttribute("id"), questionnaireNode.getAttribute("title"));
+            questionnaires.put(questionnaireNode.getAttribute("title"), questionnaireNode.getAttribute("id"));
         }
         
         return questionnaires;

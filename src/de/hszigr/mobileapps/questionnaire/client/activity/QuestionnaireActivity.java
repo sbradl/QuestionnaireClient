@@ -5,6 +5,7 @@ import java.io.IOException;
 import javax.xml.xpath.XPathExpressionException;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.CheckBox;
@@ -19,15 +20,16 @@ import de.hszigr.mobileapps.questionnaire.client.model.Choice;
 import de.hszigr.mobileapps.questionnaire.client.model.Question;
 import de.hszigr.mobileapps.questionnaire.client.model.Questionnaire;
 import de.hszigr.mobileapps.questionnaire.client.util.QuestionnaireService;
+import de.hszigr.mobileapps.questionnaire.client.util.Settings;
 
-public class GetQuestionnaireActivity extends Activity {
+public class QuestionnaireActivity extends Activity {
 
     private LinearLayout layout;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.get_questionnaire);
+        setContentView(R.layout.questionnaire);
         
         initialize();
     }
@@ -45,7 +47,9 @@ public class GetQuestionnaireActivity extends Activity {
         QuestionnaireService service = new QuestionnaireService();
 
         try {
-            Questionnaire questionnaire = service.getQuestionnaire(getIntent().getExtras().getString("baseURL"), "1");
+            SharedPreferences settings = getSharedPreferences(Settings.NAME, 0);
+            Questionnaire questionnaire = service.getQuestionnaire(settings.getString(Settings.BASE_URL,
+                    Settings.DEFAULT_BASE_URL), getIntent().getExtras().getString("qid"));
 
             int nr = 1;
             for(Question question : questionnaire.getQuestions()) {
@@ -54,9 +58,6 @@ public class GetQuestionnaireActivity extends Activity {
                 
                 ++nr;
             }
-            
-            Toast toast = Toast.makeText(getApplicationContext(), "Fetched questions: " + questionnaire.getQuestions().size(), Toast.LENGTH_SHORT);
-            toast.show();
         } catch (IOException e) {
             Toast.makeText(getApplicationContext(), "IOException: " + e.getMessage(), Toast.LENGTH_LONG).show();
         } catch (XPathExpressionException e) {
