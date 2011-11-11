@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Umfragen-Client</string>
+    <string name="BASE_URL">Server URL</string>
+    <string name="VERIFY">Überprüfen</string>
+    <string name="SETTINGS">Einstellungen</string>
+    <string name="SAVE">Speichern</string>
+    <string name="SETTINGS_SAVED">Einstellungen gespeichert</string>
+    <string name="ERROR_SAVING_SETTINGS">Fehler beim Speicher der Einstellungen</string>
+    <string name="ERROR_FETCHING_OVERVIEW">Umfragenübersicht konnte nicht heruntergeladen werden.</string>
+    <string name="SELECT_ACTION">Was möchten Sie tun?</string>
+    <string name="PARTICIPATE">Teilnehmen</string>
+    <string name="SHOW_STATISTICS">Statistiken anzeigen</string>
+    <string name="RETRY">Erneut versuchen</string>
+    <string name="CLOSE_APP">Beenden</string>
+    <string name="CANCEL">Abbrechen</string>
+    <string name="SEND">Senden</string>
+
+</resources>

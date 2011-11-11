@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -58,6 +59,10 @@ public class QuestionnaireActivity extends Activity {
                 
                 ++nr;
             }
+            
+            Button button = new Button(this);
+            button.setText(R.string.SEND);
+            layout.addView(button);
         } catch (IOException e) {
             Toast.makeText(getApplicationContext(), "IOException: " + e.getMessage(), Toast.LENGTH_LONG).show();
         } catch (XPathExpressionException e) {
