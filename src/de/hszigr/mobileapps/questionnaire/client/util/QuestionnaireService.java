@@ -47,4 +47,12 @@ public class QuestionnaireService {
         return QuestionnaireFactory.createQuestionnaireFromXml(data);
     }
     
+    public String validate(final String baseUrl, final String data) {
+        return client.put(baseUrl + "/verify.xml", data);
+    }
+    
+    public String send(final String baseUrl, final String data) {
+        return client.put(baseUrl + "/put.xml", data);
+    }
+    
 }
