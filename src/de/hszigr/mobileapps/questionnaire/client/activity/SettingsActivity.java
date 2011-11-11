@@ -47,7 +47,6 @@ public class SettingsActivity extends Activity {
     private void addViewListeners() {
         buttonSave.setOnClickListener(new OnClickListener() {
 
-            @Override
             public void onClick(View v) {
                 SharedPreferences preferences = getSharedPreferences(
                         Settings.NAME, 0);

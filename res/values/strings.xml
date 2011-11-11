@@ -12,9 +12,12 @@
     <string name="SAVE">Save</string>
     <string name="SETTINGS_SAVED">Settings saved</string>
     <string name="ERROR_SAVING_SETTINGS">Error while saving settings</string>
-    <string name="ERROR_FETCHING_OVERVIEW">Could not fetch questionnaire overview</string>
+    <string name="ERROR_FETCHING_OVERVIEW">Could not fetch questionnaire overview.</string>
     <string name="SELECT_ACTION">What do you want to do?</string>
     <string name="PARTICIPATE">Participate</string>
     <string name="SHOW_STATISTICS">Show statistics</string>
+    <string name="RETRY">Retry</string>
+    <string name="CLOSE_APP">Quit</string>
+    <string name="CANCEL">Cancel</string>
 
 </resources>
