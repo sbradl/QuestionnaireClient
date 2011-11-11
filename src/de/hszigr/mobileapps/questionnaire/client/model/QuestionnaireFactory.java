@@ -20,10 +20,12 @@ public final class QuestionnaireFactory {
         final InputSource source = new InputSource(new StringReader(xml));
         final XPath xpath = XPathFactory.newInstance().newXPath();
         
-        final Questionnaire questionnaire = new Questionnaire();
+        Element questionnaireElement = (Element) xpath.evaluate("//questionnaire", source, XPathConstants.NODE);
+        final String questionnaireId = questionnaireElement.getAttribute("id");
         
-        NodeList questionNodes = (NodeList) xpath.evaluate("//question", source,
-                XPathConstants.NODESET);
+        final Questionnaire questionnaire = new Questionnaire(questionnaireId);
+        
+        NodeList questionNodes = questionnaireElement.getElementsByTagName("question");
 
         for (int i = 0; i < questionNodes.getLength(); ++i) {
             Element questionNode = (Element) questionNodes.item(i);
