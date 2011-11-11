@@ -28,7 +28,6 @@ public class QuestionnaireClientActivity extends Activity {
 
     private static final int SELECT_ACTION_DIALOG = 0;
 
-    private TextView textViewBaseUrl;
     private ListView listViewQuestionnaires;
 
     private Intent intentSettings;
@@ -50,7 +49,6 @@ public class QuestionnaireClientActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        updateSettings();
         updateQuestionnaireList();
     }
 
@@ -112,20 +110,12 @@ public class QuestionnaireClientActivity extends Activity {
     }
 
     private void findViewReferences() {
-        textViewBaseUrl = (TextView) findViewById(R.id.textViewBaseUrl);
         listViewQuestionnaires = (ListView) findViewById(R.id.questionnaireList);
     }
 
     private void prepareActivities() {
         intentSettings = new Intent(this, SettingsActivity.class);
         intentQuestionnaire = new Intent(this, QuestionnaireActivity.class);
-    }
-
-    private void updateSettings() {
-        SharedPreferences settings = getSharedPreferences(Settings.NAME, 0);
-        textViewBaseUrl.setText("Using: "
-                + settings.getString(Settings.BASE_URL,
-                        Settings.DEFAULT_BASE_URL));
     }
 
     private void updateQuestionnaireList() {
