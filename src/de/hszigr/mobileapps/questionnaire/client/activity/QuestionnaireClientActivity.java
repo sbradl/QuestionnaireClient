@@ -126,7 +126,7 @@ public class QuestionnaireClientActivity extends Activity {
             return builder.create();
 
         case PROGRESS_DIALOG:
-            progressDialog = ProgressDialog.show(this, "", "Loading. Please wait...", true, false);
+            progressDialog = ProgressDialog.show(this, "", getString(R.string.LOADING), true, false);
             return progressDialog;
 
         default:
@@ -218,6 +218,7 @@ public class QuestionnaireClientActivity extends Activity {
 
                 handler.sendMessage(msg);
             } catch (Exception e) {
+                System.out.println(e.getMessage());
                 handler.sendEmptyMessage(1);
             }
         }

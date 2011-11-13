@@ -1,6 +1,7 @@
 package de.hszigr.mobileapps.questionnaire.client.activity;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,10 +14,14 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -113,7 +118,7 @@ public class QuestionnaireActivity extends Activity {
 
         case LOCATION:
             TextView location = new TextView(getApplicationContext());
-            location.setText("Location not determined yet");
+            location.setText("0.0, 0.0");
             questionLayout.addView(location);
             break;
 
@@ -225,8 +230,37 @@ public class QuestionnaireActivity extends Activity {
 
         QuestionnaireService service = new QuestionnaireService();
         
+        String result = service.validate(baseUrl, sw.toString());
+        
+        final InputSource source = new InputSource(new StringReader(result));
+        final XPath xpath = XPathFactory.newInstance().newXPath();
+        
+        try {
+            Element validationElement = (Element) xpath.evaluate("//validation", source, XPathConstants.NODE);
+            
+            final String status = validationElement.getAttribute("status");
+            
+            if("success".equals(status)) {
+                final InputSource source2 = new InputSource(new StringReader(service.send(baseUrl, sw.toString())));
+                final XPath xpath2 = XPathFactory.newInstance().newXPath();
+                
+                Element resultElement = (Element) xpath2.evaluate("/node()", source2, XPathConstants.NODE);
+               
+                if("success".equals(resultElement.getNodeName())) {
+                    Toast.makeText(getApplicationContext(), R.string.THANKS_FOR_PARTICIPATING, Toast.LENGTH_SHORT).show();
+                    finish();
+                } else {
+                    Toast.makeText(getApplicationContext(), "ERROR", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(getApplicationContext(), "Validation failed", Toast.LENGTH_LONG).show();
+            }
+        } catch (XPathExpressionException e) {    
+            Toast.makeText(getApplicationContext(), "Validation failed", Toast.LENGTH_LONG).show();
+        }
+        
+        
         // TODO: check validation status
-        Toast.makeText(getApplicationContext(), service.validate(baseUrl, sw.toString()), Toast.LENGTH_LONG).show();
 
         // TODO: send data if validation was successful
         

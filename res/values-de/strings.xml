@@ -15,5 +15,7 @@
     <string name="CLOSE_APP">Beenden</string>
     <string name="CANCEL">Abbrechen</string>
     <string name="SEND">Senden</string>
+    <string name="THANKS_FOR_PARTICIPATING">Vielen Dank für die Teilnahme!</string>
+    <string name="LOADING">Lade Daten. Bitte warten...</string>
 
 </resources>
