@@ -17,5 +17,10 @@
     <string name="SEND">Senden</string>
     <string name="THANKS_FOR_PARTICIPATING">Vielen Dank für die Teilnahme!</string>
     <string name="LOADING">Lade Daten. Bitte warten...</string>
+    <string name="ERROR_SENDING_DATA">Fehler beim Senden der Daten.</string>
+    <string name="VALIDATION_FAILED">Validierung fehlgeschlagen.</string>
+    <string name="INVALID_TEXT">Ungültiger Text: \"%1$s\".</string>
+    <string name="INVALID_LOCATION">Ungültige Positionsangabe: \"%1$s\".</string>
+    <string name="INVALID_CHOICE">Ungültige Auswahl.</string>
 
 </resources>

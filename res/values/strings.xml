@@ -17,5 +17,12 @@
     <string name="SEND">Send</string>
     <string name="THANKS_FOR_PARTICIPATING">Thank you for participating!</string>
     <string name="LOADING">Loading. Please wait...</string>
+    <string name="ERROR_SENDING_DATA">Error while sending data.</string>
+    <string name="VALIDATION_FAILED">Validation failed.</string>
+    <string name="INVALID_ID">Invalid questionnaire ID: \'%1$s\'.</string>
+    <string name="INVALID_QUESTION_ID">Invalid question ID: \'%1$s\'.</string>
+    <string name="INVALID_TEXT">Invalid text input: \'%1$s\'.</string>
+    <string name="INVALID_LOCATION">Invalid location: \'%1$s\'.</string>
+    <string name="INVALID_CHOICE">Invalid choice'.</string>
 
 </resources>

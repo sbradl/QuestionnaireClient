@@ -1,18 +1,12 @@
 package de.hszigr.mobileapps.questionnaire.client.util;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 import de.hszigr.mobileapps.questionnaire.client.model.Questionnaire;
 import de.hszigr.mobileapps.questionnaire.client.model.QuestionnaireFactory;
@@ -22,15 +16,14 @@ public class QuestionnaireService {
     
     private final RestClient client = new RestClient();
     
-    public Map<String, String> getQuestionnaireOverview(final String baseUrl) throws IOException, XPathExpressionException {
-        String data = client.get(baseUrl + "/list.xml");
+    public Map<String, String> getQuestionnaireOverview(final String baseUrl) throws IOException {
+        final String data = client.get(baseUrl + "/list.xml");
         
-        Map<String, String> questionnaires = new HashMap<String, String>();
+        final Map<String, String> questionnaires = new HashMap<String, String>();
         
-        final InputSource source = new InputSource(new StringReader(data));
-        final XPath xpath = XPathFactory.newInstance().newXPath();
+        final Document source = XmlUtils.stringToXml(data);
         
-        NodeList questionnaireNodes = (NodeList) xpath.evaluate("//questionnaire", source, XPathConstants.NODESET);
+        NodeList questionnaireNodes = source.getDocumentElement().getElementsByTagName("questionnaire");
         
         for(int i = 0; i < questionnaireNodes.getLength(); ++i) {
             Element questionnaireNode = (Element) questionnaireNodes.item(i);
@@ -40,19 +33,18 @@ public class QuestionnaireService {
         return questionnaires;
     }
 
-    public Questionnaire getQuestionnaire(final String baseUrl, final String id) throws IOException, XPathExpressionException {
-        
+    public Questionnaire getQuestionnaire(final String baseUrl, final String id) throws IOException {
         String data = client.get(baseUrl + "/get/" + id + ".xml");
 
         return QuestionnaireFactory.createQuestionnaireFromXml(data);
     }
     
-    public String validate(final String baseUrl, final String data) {
-        return client.put(baseUrl + "/verify.xml", data);
+    public Document validate(final String baseUrl, final Document data) {
+        return XmlUtils.stringToXml(client.put(baseUrl + "/verify.xml", XmlUtils.xmlToString(data)));
     }
     
-    public String send(final String baseUrl, final String data) {
-        return client.put(baseUrl + "/put.xml", data);
+    public Document send(final String baseUrl, final Document data) {
+        return XmlUtils.stringToXml(client.put(baseUrl + "/put.xml", XmlUtils.xmlToString(data)));
     }
     
 }

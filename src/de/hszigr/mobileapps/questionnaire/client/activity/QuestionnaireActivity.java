@@ -1,41 +1,33 @@
 package de.hszigr.mobileapps.questionnaire.client.activity;
 
 import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
+import org.w3c.dom.NodeList;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.TextView;
 import de.hszigr.mobileapps.R;
-import de.hszigr.mobileapps.questionnaire.client.model.Choice;
 import de.hszigr.mobileapps.questionnaire.client.model.Question;
 import de.hszigr.mobileapps.questionnaire.client.model.Questionnaire;
+import de.hszigr.mobileapps.questionnaire.client.util.ActivityUtils;
+import de.hszigr.mobileapps.questionnaire.client.util.QuestionInputFactory;
 import de.hszigr.mobileapps.questionnaire.client.util.QuestionnaireService;
 import de.hszigr.mobileapps.questionnaire.client.util.Settings;
+import de.hszigr.mobileapps.questionnaire.client.util.XmlUtils;
 
 public class QuestionnaireActivity extends Activity {
 
@@ -46,6 +38,7 @@ public class QuestionnaireActivity extends Activity {
     private Map<String, View> viewMap = new HashMap<String, View>();
 
     private String baseUrl;
+    private int currentQuestionNumber;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -65,206 +58,223 @@ public class QuestionnaireActivity extends Activity {
     }
 
     private void fetchQuestionnaire() {
-        QuestionnaireService service = new QuestionnaireService();
+        retreiveBaseUrl();
+        tryToRetreiveQuestionnaire();
 
-        try {
-            SharedPreferences settings = getSharedPreferences(Settings.NAME, 0);
-            baseUrl = settings.getString(Settings.BASE_URL, Settings.DEFAULT_BASE_URL);
-            questionnaire = service.getQuestionnaire(baseUrl,
-                getIntent().getExtras().getString("qid"));
-
-            int nr = 1;
-            for (Question question : questionnaire.getQuestions()) {
-                View v = createViewFor(question, nr);
-                layout.addView(v);
-                ++nr;
-            }
-
-            Button button = new Button(this);
-            button.setText(R.string.SEND);
-
-            button.setOnClickListener(new OnClickListener() {
-
-                public void onClick(View v) {
-                    sendData();
-                }
-            });
-
-            layout.addView(button);
-        } catch (IOException e) {
-            Toast.makeText(getApplicationContext(), "IOException: " + e.getMessage(),
-                Toast.LENGTH_LONG).show();
-        } catch (XPathExpressionException e) {
-            Toast.makeText(getApplicationContext(), "XPathException: " + e.getMessage(),
-                Toast.LENGTH_LONG).show();
+        if (questionnaire != null) {
+            resetCurrentQuestionNumber();
+            buildQuestionnaireView();
         }
     }
 
-    private View createViewFor(Question question, int nr) {
-        final String text = "" + nr + ". " + question.getText();
+    private void buildQuestionnaireView() {
+        createQuestionViews();
+        createSendButton();
+    }
 
-        LinearLayout questionLayout = new LinearLayout(getApplicationContext());
-        questionLayout.setOrientation(LinearLayout.VERTICAL);
+    private void resetCurrentQuestionNumber() {
+        currentQuestionNumber = 1;
+    }
 
-        TextView questionText = new TextView(getApplicationContext());
-        questionText.setText(text);
-        questionLayout.addView(questionText);
+    private void createSendButton() {
+        Button button = new Button(this);
+        button.setText(R.string.SEND);
 
-        switch (question.getType()) {
-        case TEXT:
-            EditText edit = new EditText(getApplicationContext());
-            questionLayout.addView(edit);
-            break;
-
-        case LOCATION:
-            TextView location = new TextView(getApplicationContext());
-            location.setText("0.0, 0.0");
-            questionLayout.addView(location);
-            break;
-
-        case CHOICE:
-            RadioGroup radios = new RadioGroup(getApplicationContext());
-
-            for (Choice c : question.getChoices()) {
-                RadioButton radio = new RadioButton(getApplicationContext());
-
-                radio.setText(c.getValue());
-                radio.setTag(c.getId());
-                radios.addView(radio);
+        button.setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                sendData();
             }
+        });
 
-            questionLayout.addView(radios);
-            break;
+        layout.addView(button);
+    }
 
-        case MULTICHOICE:
-            for (Choice c : question.getChoices()) {
-                CheckBox cb = new CheckBox(getApplicationContext());
-                cb.setText(c.getValue());
-                cb.setTag(c.getId());
-                questionLayout.addView(cb);
-            }
-            break;
+    private void createQuestionViews() {
+        for (Question question : questionnaire.getQuestions()) {
+            View v = createViewFor(question);
+            layout.addView(v);
         }
+    }
+
+    private void retreiveBaseUrl() {
+        baseUrl = Settings.getBaseUrl(this);
+    }
+
+    private void tryToRetreiveQuestionnaire() {
+        try {
+            QuestionnaireService service = new QuestionnaireService();
+            questionnaire = service.getQuestionnaire(baseUrl,
+                    getIntent().getExtras().getString("qid"));
+
+        } catch (IOException e) {
+            ActivityUtils.showErrorMessage(this, e);
+        }
+    }
+
+    private View createViewFor(Question question) {
+        final String text = "" + currentQuestionNumber + ". " + question.getText();
+        currentQuestionNumber++;
+
+        final LinearLayout questionLayout = createQuestionLayout();
+
+        createQuestionTextView(text, questionLayout);
+
+        createQuestionInput(question, questionLayout);
 
         viewMap.put(question.getId(), questionLayout);
 
         return questionLayout;
     }
 
+    private void createQuestionInput(Question question, final LinearLayout questionLayout) {
+        final View inputView = QuestionInputFactory.createViewFor(question, this);
+        questionLayout.addView(inputView);
+    }
+
+    private void createQuestionTextView(final String text, final LinearLayout questionLayout) {
+        final TextView questionTextView = new TextView(this);
+        questionTextView.setText(text);
+        questionLayout.addView(questionTextView);
+    }
+
+    private LinearLayout createQuestionLayout() {
+        final LinearLayout questionLayout = new LinearLayout(this);
+        questionLayout.setOrientation(LinearLayout.VERTICAL);
+
+        return questionLayout;
+    }
+
     private void sendData() {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder;
-        try {
-            builder = factory.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            return;
+        
+        Document doc = XmlUtils.createEmptyDocument();
+
+        final Element answersElement = createAnswersElement(doc);
+        createAnswerElements(doc, answersElement);
+
+        final QuestionnaireService service = new QuestionnaireService();
+        final Document validationResult = service.validate(baseUrl, doc);
+        final Element validationElement = validationResult.getDocumentElement();
+        final String status = validationElement.getAttribute("status");
+
+        if ("success".equals(status)) {
+            final Document sendResult = service.send(baseUrl, doc);
+
+            final Element resultElement = sendResult.getDocumentElement();
+
+            if ("success".equals(resultElement.getNodeName())) {
+                ActivityUtils.showInfoMessage(this, R.string.THANKS_FOR_PARTICIPATING);
+                finish();
+            } else {
+                ActivityUtils.showErrorMessage(this, R.string.ERROR_SENDING_DATA);
+            }
+        } else {
+            final Element messageElement = (Element) validationElement.getElementsByTagName("message").item(0);
+            
+            final String error = messageElement.getAttribute("error");
+            
+            final Element inputElement = (Element) messageElement.getElementsByTagName("input").item(0);
+            
+            final String input = inputElement.getTextContent();
+            
+            if("INVALID_ID".equals(error)) {
+                ActivityUtils.showErrorMessage(this, R.string.INVALID_ID, input);
+            } else if("INVALID_QUESTION_ID".equals(error)) {
+                ActivityUtils.showErrorMessage(this, R.string.INVALID_QUESTION_ID, input);
+            } else if("INVALID_TEXT".equals(error)) {
+                ActivityUtils.showErrorMessage(this, R.string.INVALID_TEXT, input);
+            } else if("INVALID_LOCATION".equals(error)) {
+                ActivityUtils.showErrorMessage(this, R.string.INVALID_LOCATION, input);
+            } else if("INVALID_CHOICE".equals(error)) {
+                ActivityUtils.showErrorMessage(this, R.string.INVALID_CHOICE);
+            }
+            
+        }
+        
+    }
+
+    private void createAnswerElements(Document doc, final Element answersElement) {
+        for (Question question : questionnaire.getQuestions()) {
+            final Element answerElement = createAnswerElement(doc, answersElement, question);
+
+            final LinearLayout questionLayout = (LinearLayout) viewMap.get(question.getId());
+            final LinearLayout layout = (LinearLayout) questionLayout.getChildAt(1);
+
+            getAnswer(question, answerElement, layout);
+        }
+    }
+
+    private void getAnswer(Question question, final Element answerElement, final LinearLayout layout) {
+        switch (question.getType()) {
+        case TEXT:
+            getAnswerForText(answerElement, layout);
+            break;
+
+        case LOCATION:
+            getAnswerForLocation(answerElement, layout);
+            break;
+
+        case CHOICE:
+            getAnswerForChoice(answerElement, layout);
+            break;
+
+        case MULTICHOICE:
+            getAnswerForMultiChoice(answerElement, layout);
+            break;
+        }
+    }
+
+    private void getAnswerForMultiChoice(final Element answerElement, final LinearLayout layout) {
+        String data = "";
+        for (int i = 0; i < layout.getChildCount(); ++i) {
+            CheckBox cb = (CheckBox) layout.getChildAt(i);
+
+            if (cb.isChecked()) {
+                data += (String) cb.getTag() + ",";
+            }
         }
 
-        Document doc = builder.newDocument();
+        if (data.endsWith(",")) {
+            data = data.substring(0, data.length() - 1);
+        }
 
-        Element answersElement = doc.createElement("answers");
+        answerElement.setTextContent(data);
+    }
+
+    private void getAnswerForChoice(final Element answerElement, final LinearLayout layout) {
+        RadioGroup radios = (RadioGroup) layout.getChildAt(0);
+
+        for (int i = 0; i != radios.getChildCount(); ++i) {
+            RadioButton rb = (RadioButton) radios.getChildAt(i);
+
+            if (rb.isChecked()) {
+                answerElement.setTextContent((String) rb.getTag());
+                break;
+            }
+        }
+    }
+
+    private void getAnswerForLocation(final Element answerElement, final LinearLayout layout) {
+        TextView text = (TextView) layout.getChildAt(0);
+        answerElement.setTextContent(text.getText().toString());
+    }
+
+    private void getAnswerForText(final Element answerElement, final LinearLayout layout) {
+        EditText edit = (EditText) layout.getChildAt(0);
+        answerElement.setTextContent(edit.getText().toString());
+    }
+
+    private Element createAnswerElement(Document doc, final Element answersElement,
+            Question question) {
+        Element answerElement = doc.createElement("answer");
+        answerElement.setAttribute("forQuestion", question.getId());
+        answersElement.appendChild(answerElement);
+        return answerElement;
+    }
+
+    private Element createAnswersElement(Document doc) {
+        final Element answersElement = doc.createElement("answers");
         answersElement.setAttribute("forQuestionnaire", questionnaire.getId());
         doc.appendChild(answersElement);
-
-        for (Question question : questionnaire.getQuestions()) {
-            Element answerElement = doc.createElement("answer");
-            answerElement.setAttribute("forQuestion", question.getId());
-            answersElement.appendChild(answerElement);
-
-            LinearLayout layout = (LinearLayout) viewMap.get(question.getId());
-
-            switch (question.getType()) {
-            case TEXT:
-                EditText edit = (EditText) layout.getChildAt(1);
-                answerElement.setTextContent(edit.getText().toString());
-                break;
-
-            case LOCATION:
-                TextView text = (TextView) layout.getChildAt(1);
-                answerElement.setTextContent(text.getText().toString());
-                break;
-
-            case CHOICE:
-                RadioGroup radios = (RadioGroup) layout.getChildAt(1);
-
-                for (int i = 0; i != radios.getChildCount(); ++i) {
-                    RadioButton rb = (RadioButton) radios.getChildAt(i);
-
-                    if (rb.isChecked()) {
-                        answerElement.setTextContent((String) rb.getTag());
-                        break;
-                    }
-                }
-                break;
-
-            case MULTICHOICE:
-                String data = "";
-                for (int i = 1; i < layout.getChildCount(); ++i) {
-                    CheckBox cb = (CheckBox) layout.getChildAt(i);
-
-                    if (cb.isChecked()) {
-                        data += (String) cb.getTag() + ",";
-                    }
-                }
-
-                if (data.endsWith(",")) {
-                    data = data.substring(0, data.length() - 1);
-                }
-
-                answerElement.setTextContent(data);
-                break;
-            }
-        }
-
-        StringWriter sw = new StringWriter();
-
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer;
-
-        try {
-            transformer = transformerFactory.newTransformer();
-            transformer.transform(new DOMSource(doc), new StreamResult(sw));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        QuestionnaireService service = new QuestionnaireService();
-        
-        String result = service.validate(baseUrl, sw.toString());
-        
-        final InputSource source = new InputSource(new StringReader(result));
-        final XPath xpath = XPathFactory.newInstance().newXPath();
-        
-        try {
-            Element validationElement = (Element) xpath.evaluate("//validation", source, XPathConstants.NODE);
-            
-            final String status = validationElement.getAttribute("status");
-            
-            if("success".equals(status)) {
-                final InputSource source2 = new InputSource(new StringReader(service.send(baseUrl, sw.toString())));
-                final XPath xpath2 = XPathFactory.newInstance().newXPath();
-                
-                Element resultElement = (Element) xpath2.evaluate("/node()", source2, XPathConstants.NODE);
-               
-                if("success".equals(resultElement.getNodeName())) {
-                    Toast.makeText(getApplicationContext(), R.string.THANKS_FOR_PARTICIPATING, Toast.LENGTH_SHORT).show();
-                    finish();
-                } else {
-                    Toast.makeText(getApplicationContext(), "ERROR", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Toast.makeText(getApplicationContext(), "Validation failed", Toast.LENGTH_LONG).show();
-            }
-        } catch (XPathExpressionException e) {    
-            Toast.makeText(getApplicationContext(), "Validation failed", Toast.LENGTH_LONG).show();
-        }
-        
-        
-        // TODO: check validation status
-
-        // TODO: send data if validation was successful
-        
-        // Toast.makeText(getApplicationContext(), sw.toString(),
-        // Toast.LENGTH_LONG).show();
+        return answersElement;
     }
 }
