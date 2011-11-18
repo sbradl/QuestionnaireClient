@@ -23,6 +23,7 @@
     <string name="INVALID_QUESTION_ID">Invalid question ID: \'%1$s\'.</string>
     <string name="INVALID_TEXT">Invalid text input: \'%1$s\'.</string>
     <string name="INVALID_LOCATION">Invalid location: \'%1$s\'.</string>
-    <string name="INVALID_CHOICE">Invalid choice'.</string>
-
+    <string name="INVALID_CHOICE">Invalid choice.</string>
+    <string name="ACTION_NOT_AVAILABLE">This action is not available at the moment.</string>
+    
 </resources>

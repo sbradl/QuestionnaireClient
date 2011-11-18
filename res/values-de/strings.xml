@@ -22,5 +22,6 @@
     <string name="INVALID_TEXT">Ungültiger Text: \"%1$s\".</string>
     <string name="INVALID_LOCATION">Ungültige Positionsangabe: \"%1$s\".</string>
     <string name="INVALID_CHOICE">Ungültige Auswahl.</string>
+    <string name="ACTION_NOT_AVAILABLE">Diese Aktion steht momentan nicht zur Verfügung.</string>
 
 </resources>

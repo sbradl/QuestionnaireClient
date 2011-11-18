@@ -17,6 +17,7 @@ import android.view.*;
 import android.widget.*;
 import android.widget.AdapterView.OnItemClickListener;
 import de.hszigr.mobileapps.R;
+import de.hszigr.mobileapps.questionnaire.client.util.ActivityUtils;
 import de.hszigr.mobileapps.questionnaire.client.util.QuestionnaireService;
 import de.hszigr.mobileapps.questionnaire.client.util.Settings;
 
@@ -93,6 +94,7 @@ public class QuestionnaireClientActivity extends Activity {
                         break;
 
                     default:
+                        ActivityUtils.showInfoMessage(getApplicationContext(), R.string.ACTION_NOT_AVAILABLE);
                         break;
                     }
                 }
