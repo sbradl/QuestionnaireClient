@@ -23,7 +23,6 @@ public class RestClient {
         HttpEntity entity = response.getEntity();
 
         return EntityUtils.toString(entity);
-
     }
 
     public String put(final String url, final String data) {

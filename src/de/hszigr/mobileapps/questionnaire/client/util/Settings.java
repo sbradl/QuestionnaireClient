@@ -11,7 +11,7 @@ public final class Settings {
     public static final String BASE_URL = "BaseURL";
 
     public static String getBaseUrl(Context context) {
-        final SharedPreferences preferences = context.getSharedPreferences(BASE_URL, 0);
+        final SharedPreferences preferences = context.getSharedPreferences(NAME, 0);
 
         return preferences.getString(BASE_URL, DEFAULT_BASE_URL);
     }

@@ -201,8 +201,7 @@ public class QuestionnaireClientActivity extends Activity {
         public void run() {
             listViewQuestionnaires.clearChoices();
 
-            SharedPreferences settings = getSharedPreferences(Settings.NAME, 0);
-            String baseUrl = settings.getString(Settings.BASE_URL, Settings.DEFAULT_BASE_URL);
+            final String baseUrl = Settings.getBaseUrl(getApplicationContext());
 
             QuestionnaireService service = new QuestionnaireService();
 
