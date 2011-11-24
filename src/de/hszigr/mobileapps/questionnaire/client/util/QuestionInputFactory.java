@@ -1,6 +1,10 @@
 package de.hszigr.mobileapps.questionnaire.client.util;
 
 import android.content.Context;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -32,30 +36,53 @@ public class QuestionInputFactory {
             throw new RuntimeException("Invalid question type: " + question.getType());
         }
     }
-    
+
     private static View createTextInput(Context context) {
         final LinearLayout layout = new LinearLayout(context);
-        
+
         final EditText edit = new EditText(context);
         layout.addView(edit);
         edit.getLayoutParams().width = LayoutParams.FILL_PARENT;
-        
+
         return layout;
     }
-    
+
     private static View createLocationInput(Context context) {
         final LinearLayout layout = new LinearLayout(context);
+        final TextView locationTextView = new TextView(context);
+        layout.addView(locationTextView);
         
-        final TextView location = new TextView(context);
-        location.setText("0.0, 0.0");
-        layout.addView(location);
-        
+        LocationManager locationManager =
+                (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+
+        LocationListener locationListener = new LocationListener() {
+     
+            public void onLocationChanged(Location location) {
+                String lat = Double.toString(location.getLatitude());
+                String lng = Double.toString(location.getLongitude());
+                locationTextView.setText(String.format("%s, %s", lat, lng));
+            }
+
+            public void onProviderDisabled(String provider) {
+            }
+
+            public void onProviderEnabled(String provider) {
+            }
+
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+                
+            }
+        };
+
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0,
+                locationListener);
+
         return layout;
     }
-    
+
     private static View createChoiceInput(Question question, Context context) {
         final LinearLayout layout = new LinearLayout(context);
-        
+
         final RadioGroup radios = new RadioGroup(context);
 
         for (Choice choice : question.getChoices()) {
@@ -67,22 +94,22 @@ public class QuestionInputFactory {
         }
 
         layout.addView(radios);
-        
+
         return layout;
     }
-    
+
     private static View createMultiChoiceInput(Question question, Context context) {
         final LinearLayout layout = new LinearLayout(context);
-        
+
         layout.setOrientation(LinearLayout.VERTICAL);
-        
+
         for (Choice c : question.getChoices()) {
             CheckBox cb = new CheckBox(context);
             cb.setText(c.getValue());
             cb.setTag(c.getId());
             layout.addView(cb);
         }
-        
+
         return layout;
     }
 
