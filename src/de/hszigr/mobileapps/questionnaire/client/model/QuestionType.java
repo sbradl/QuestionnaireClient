@@ -5,6 +5,7 @@ public enum QuestionType {
     TEXT,
     LOCATION,
     CHOICE,
-    MULTICHOICE
+    MULTICHOICE,
+    ATTACHMENT
     
 }

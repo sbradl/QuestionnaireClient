@@ -25,5 +25,6 @@
     <string name="INVALID_LOCATION">Invalid location: \'%1$s\'.</string>
     <string name="INVALID_CHOICE">Invalid choice.</string>
     <string name="ACTION_NOT_AVAILABLE">This action is not available at the moment.</string>
+    <string name="TAKE_PHOTO">Take Photo</string>
     
 </resources>

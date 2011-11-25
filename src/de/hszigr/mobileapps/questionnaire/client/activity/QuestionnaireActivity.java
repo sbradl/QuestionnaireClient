@@ -1,14 +1,23 @@
 package de.hszigr.mobileapps.questionnaire.client.activity;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
+import de.hszigr.mobileapps.R;
+import de.hszigr.mobileapps.questionnaire.client.model.Question;
+import de.hszigr.mobileapps.questionnaire.client.model.QuestionType;
+import de.hszigr.mobileapps.questionnaire.client.model.Questionnaire;
+import de.hszigr.mobileapps.questionnaire.client.util.ActivityUtils;
+import de.hszigr.mobileapps.questionnaire.client.util.QuestionInputFactory;
+import de.hszigr.mobileapps.questionnaire.client.util.QuestionnaireService;
+import de.hszigr.mobileapps.questionnaire.client.util.Settings;
+import de.hszigr.mobileapps.questionnaire.client.util.XmlUtils;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.text.TextUtils.TruncateAt;
+import android.util.Base64;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -18,16 +27,22 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-import de.hszigr.mobileapps.R;
-import de.hszigr.mobileapps.questionnaire.client.model.Question;
-import de.hszigr.mobileapps.questionnaire.client.model.Questionnaire;
-import de.hszigr.mobileapps.questionnaire.client.util.ActivityUtils;
-import de.hszigr.mobileapps.questionnaire.client.util.QuestionInputFactory;
-import de.hszigr.mobileapps.questionnaire.client.util.QuestionnaireService;
-import de.hszigr.mobileapps.questionnaire.client.util.Settings;
-import de.hszigr.mobileapps.questionnaire.client.util.XmlUtils;
+import android.widget.Toast;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 public class QuestionnaireActivity extends Activity {
+
+    private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
 
     private LinearLayout layout;
 
@@ -37,13 +52,32 @@ public class QuestionnaireActivity extends Activity {
 
     private String baseUrl;
     private int currentQuestionNumber;
+    
+    private String imageData;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onResume() {
+        super.onResume();
         setContentView(R.layout.questionnaire);
 
         initialize();
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                Bitmap image = (Bitmap) data.getExtras().get("data");
+ 
+                ByteArrayOutputStream bos = new ByteArrayOutputStream(); 
+                image.compress(CompressFormat.JPEG, 0, bos);
+                
+                imageData = Base64.encodeToString(bos.toByteArray(), Base64.DEFAULT);
+            } else if (resultCode == RESULT_CANCELED) {
+            } else {
+                Toast.makeText(this, "Capture failed", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     private void initialize() {
@@ -101,8 +135,8 @@ public class QuestionnaireActivity extends Activity {
     private void tryToRetreiveQuestionnaire() {
         try {
             QuestionnaireService service = new QuestionnaireService();
-            questionnaire = service.getQuestionnaire(baseUrl,
-                    getIntent().getExtras().getString("qid"));
+            questionnaire =
+                    service.getQuestionnaire(baseUrl, getIntent().getExtras().getString("qid"));
 
         } catch (IOException e) {
             ActivityUtils.showErrorMessage(this, e);
@@ -127,11 +161,30 @@ public class QuestionnaireActivity extends Activity {
     private void createQuestionInput(Question question, final LinearLayout questionLayout) {
         final View inputView = QuestionInputFactory.createViewFor(question, this);
         questionLayout.addView(inputView);
+
+        if (question.getType() == QuestionType.ATTACHMENT) {
+            LinearLayout layout = (LinearLayout) inputView;
+            Button button = (Button) layout.getChildAt(0);
+            button.setText(R.string.TAKE_PHOTO);
+            
+            button.setOnClickListener(new OnClickListener() {
+
+                public void onClick(View v) {
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, MediaStore.Images.Media.EXTERNAL_CONTENT_URI + File.pathSeparator + getOutputMediaFilename());
+
+                    startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+                }
+            });
+        }
     }
 
     private void createQuestionTextView(final String text, final LinearLayout questionLayout) {
         final TextView questionTextView = new TextView(this);
         questionTextView.setText(text);
+        questionTextView.setEllipsize(TruncateAt.END);
+        questionTextView.setHorizontallyScrolling(true);
         questionLayout.addView(questionTextView);
     }
 
@@ -143,7 +196,7 @@ public class QuestionnaireActivity extends Activity {
     }
 
     private void sendData() {
-        
+
         Document doc = XmlUtils.createEmptyDocument();
 
         final Element answersElement = createAnswersElement(doc);
@@ -166,28 +219,30 @@ public class QuestionnaireActivity extends Activity {
                 ActivityUtils.showErrorMessage(this, R.string.ERROR_SENDING_DATA);
             }
         } else {
-            final Element messageElement = (Element) validationElement.getElementsByTagName("message").item(0);
-            
+            final Element messageElement =
+                    (Element) validationElement.getElementsByTagName("message").item(0);
+
             final String error = messageElement.getAttribute("error");
-            
-            final Element inputElement = (Element) messageElement.getElementsByTagName("input").item(0);
-            
+
+            final Element inputElement =
+                    (Element) messageElement.getElementsByTagName("input").item(0);
+
             final String input = inputElement.getTextContent();
-            
-            if("INVALID_ID".equals(error)) {
+
+            if ("INVALID_ID".equals(error)) {
                 ActivityUtils.showErrorMessage(this, R.string.INVALID_ID, input);
-            } else if("INVALID_QUESTION_ID".equals(error)) {
+            } else if ("INVALID_QUESTION_ID".equals(error)) {
                 ActivityUtils.showErrorMessage(this, R.string.INVALID_QUESTION_ID, input);
-            } else if("INVALID_TEXT".equals(error)) {
+            } else if ("INVALID_TEXT".equals(error)) {
                 ActivityUtils.showErrorMessage(this, R.string.INVALID_TEXT, input);
-            } else if("INVALID_LOCATION".equals(error)) {
+            } else if ("INVALID_LOCATION".equals(error)) {
                 ActivityUtils.showErrorMessage(this, R.string.INVALID_LOCATION, input);
-            } else if("INVALID_CHOICE".equals(error)) {
+            } else if ("INVALID_CHOICE".equals(error)) {
                 ActivityUtils.showErrorMessage(this, R.string.INVALID_CHOICE);
             }
-            
+
         }
-        
+
     }
 
     private void createAnswerElements(Document doc, final Element answersElement) {
@@ -201,7 +256,8 @@ public class QuestionnaireActivity extends Activity {
         }
     }
 
-    private void getAnswer(Question question, final Element answerElement, final LinearLayout layout) {
+    private void
+            getAnswer(Question question, final Element answerElement, final LinearLayout layout) {
         switch (question.getType()) {
         case TEXT:
             getAnswerForText(answerElement, layout);
@@ -217,6 +273,10 @@ public class QuestionnaireActivity extends Activity {
 
         case MULTICHOICE:
             getAnswerForMultiChoice(answerElement, layout);
+            break;
+
+        case ATTACHMENT:
+            getAnswerForAttachment(answerElement, layout);
             break;
         }
     }
@@ -261,6 +321,10 @@ public class QuestionnaireActivity extends Activity {
         answerElement.setTextContent(edit.getText().toString());
     }
 
+    private void getAnswerForAttachment(final Element answerElement, final LinearLayout layout) {
+        answerElement.setTextContent(imageData);
+    }
+
     private Element createAnswerElement(Document doc, final Element answersElement,
             Question question) {
         Element answerElement = doc.createElement("answer");
@@ -274,5 +338,12 @@ public class QuestionnaireActivity extends Activity {
         answersElement.setAttribute("forQuestionnaire", questionnaire.getId());
         doc.appendChild(answersElement);
         return answersElement;
+    }
+
+    /** Create a File for saving an image or video */
+    private static String getOutputMediaFilename() {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+
+        return "IMG_" + timeStamp + ".jpg";
     }
 }

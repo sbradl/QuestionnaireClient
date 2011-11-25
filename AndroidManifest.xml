@@ -23,5 +23,8 @@
         <activity android:name=".questionnaire.client.activity.SettingsActivity"></activity>
     </application>
     <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
 </manifest>

@@ -1,11 +1,16 @@
 package de.hszigr.mobileapps.questionnaire.client.util;
 
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -17,7 +22,7 @@ import de.hszigr.mobileapps.questionnaire.client.model.Choice;
 import de.hszigr.mobileapps.questionnaire.client.model.Question;
 
 public class QuestionInputFactory {
-
+    
     public static View createViewFor(Question question, Context context) {
         switch (question.getType()) {
         case TEXT:
@@ -31,6 +36,9 @@ public class QuestionInputFactory {
 
         case MULTICHOICE:
             return createMultiChoiceInput(question, context);
+
+        case ATTACHMENT:
+            return createAttachmentInput(question, context);
 
         default:
             throw new RuntimeException("Invalid question type: " + question.getType());
@@ -51,12 +59,12 @@ public class QuestionInputFactory {
         final LinearLayout layout = new LinearLayout(context);
         final TextView locationTextView = new TextView(context);
         layout.addView(locationTextView);
-        
+
         LocationManager locationManager =
                 (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
         LocationListener locationListener = new LocationListener() {
-     
+
             public void onLocationChanged(Location location) {
                 String lat = Double.toString(location.getLatitude());
                 String lng = Double.toString(location.getLongitude());
@@ -70,7 +78,7 @@ public class QuestionInputFactory {
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {
-                
+
             }
         };
 
@@ -109,6 +117,16 @@ public class QuestionInputFactory {
             cb.setTag(c.getId());
             layout.addView(cb);
         }
+
+        return layout;
+    }
+
+    private static View createAttachmentInput(Question question, final Context context) {
+        final LinearLayout layout = new LinearLayout(context);
+
+        Button takePicture = new Button(context);
+
+        layout.addView(takePicture);
 
         return layout;
     }
